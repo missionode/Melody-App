@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyboard Piano</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: sans-serif;
+        }
+
+        .piano {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .key {
+            width: 50px;
+            height: 100px;
+            border: 1px solid #000;
+            background-color: white;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 5px;
+            box-sizing: border-box;
+            user-select: none;
+            margin: 2px;
+        }
+
+        .key.black {
+            width: 30px;
+            height: 60px;
+            background-color: black;
+            color: white;
+            margin: 0 -15px 0 -15px;
+            z-index: 1;
+        }
+
+        .key.active {
+            background-color: lightgray;
+        }
+
+        #recording {
+            width: 80%;
+            height: 100px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        #playRecording {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Melody Maker</h1>
+    <div class="piano" id="piano">
+    </div>
+    <h2>Write your poem and Play</h2>
+    <textarea id="recording" placeholder="Enter notes or letters (e.g., abc or C4D4E4)"></textarea>
+    <button id="playRecording">Play Recording</button>
+
+    <script>
+        const pianoDiv = document.getElementById('piano');
+        const recordingInput = document.getElementById('recording');
+        const playRecordingButton = document.getElementById('playRecording');
+
+        const notes = {
+            'A0': 'audio/A0.mp3', 'A1': 'audio/A1.mp3', 'A2': 'audio/A2.mp3', 'A3': 'audio/A3.mp3', 'A4': 'audio/A4.mp3', 'A5': 'audio/A5.mp3', 'A6': 'audio/A6.mp3', 'A7': 'audio/A7.mp3',
+            'Ab1': 'audio/Ab1.mp3', 'Ab2': 'audio/Ab2.mp3', 'Ab3': 'audio/Ab3.mp3', 'Ab4': 'audio/Ab4.mp3', 'Ab5': 'audio/Ab5.mp3', 'Ab6': 'audio/Ab6.mp3', 'Ab7': 'audio/Ab7.mp3',
+            'B0': 'audio/B0.mp3', 'B1': 'audio/B1.mp3', 'B2': 'audio/B2.mp3', 'B3': 'audio/B3.mp3', 'B4': 'audio/B4.mp3', 'B5': 'audio/B5.mp3', 'B6': 'audio/B6.mp3', 'B7': 'audio/B7.mp3',
+            'Bb0': 'audio/Bb0.mp3', 'Bb1': 'audio/Bb1.mp3', 'Bb2': 'audio/Bb2.mp3', 'Bb3': 'audio/Bb3.mp3', 'Bb4': 'audio/Bb4.mp3', 'Bb5': 'audio/Bb5.mp3', 'Bb6': 'audio/Bb6.mp3', 'Bb7': 'audio/Bb7.mp3',
+            'C1': 'audio/C1.mp3', 'C2': 'audio/C2.mp3', 'C3': 'audio/C3.mp3', 'C4': 'audio/C4.mp3', 'C5': 'audio/C5.mp3', 'C6': 'audio/C6.mp3', 'C7': 'audio/C7.mp3', 'C8': 'audio/C8.mp3',
+            'D1': 'audio/D1.mp3', 'D2': 'audio/D2.mp3', 'D3': 'audio/D3.mp3', 'D4': 'audio/D4.mp3', 'D5': 'audio/D5.mp3', 'D6': 'audio/D6.mp3', 'D7': 'audio/D7.mp3',
+            'Db1': 'audio/Db1.mp3', 'Db2': 'audio/Db2.mp3', 'Db3': 'audio/Db3.mp3', 'Db4': 'audio/Db4.mp3', 'Db5': 'audio/Db5.mp3', 'Db6': 'audio/Db6.mp3', 'Db7': 'audio/Db7.mp3', 'Db8': 'audio/Db8.mp3',
+            'E1': 'audio/E1.mp3', 'E2': 'audio/E2.mp3', 'E3': 'audio/E3.mp3', 'E4': 'audio/E4.mp3', 'E5': 'audio/E5.mp3', 'E6': 'audio/E6.mp3', 'E7': 'audio/E7.mp3',
+            'Eb1': 'audio/Eb1.mp3', 'Eb2': 'audio/Eb2.mp3', 'Eb3': 'audio/Eb3.mp3', 'Eb4': 'audio/Eb4.mp3', 'Eb5': 'audio/Eb5.mp3', 'Eb6': 'audio/Eb6.mp3', 'Eb7': 'audio/Eb7.mp3',
+            'F1': 'audio/F1.mp3', 'F2': 'audio/F2.mp3', 'F3': 'audio/F3.mp3', 'F4': 'audio/F4.mp3', 'F5': 'audio/F5.mp3', 'F6': 'audio/F6.mp3', 'F7': 'audio/F7.mp3',
+            'G1': 'audio/G1.mp3', 'G2': 'audio/G2.mp3', 'G3': 'audio/G3.mp3', 'G4': 'audio/G4.mp3', 'G5': 'audio/G5.mp3', 'G6': 'audio/G6.mp3', 'G7': 'audio/G7.mp3',
+            'Gb1': 'audio/Gb1.mp3', 'Gb2': 'audio/Gb2.mp3', 'Gb3': 'audio/Gb3.mp3', 'Gb4': 'audio/Gb4.mp3', 'Gb5': 'audio/Gb5.mp3', 'Gb6': 'audio/Gb6.mp3', 'Gb7': 'audio/Gb7.mp3'
+        };
+
+        function playNote(note) {
+            if (notes[note]) {
+                const audio = new Audio(notes[note]);
+                audio.play();
+            }
+        }
+
+        for (const note in notes) {
+            const key = document.createElement('div');
+            key.classList.add('key');
+            key.dataset.note = note;
+            key.textContent = note;
+
+            if (note.includes('b')) {
+                key.classList.add('black');
+            }
+
+            key.addEventListener('mousedown', () => {
+                playNote(note);
+                key.classList.add('active');
+            });
+
+            key.addEventListener('mouseup', () => {
+                key.classList.remove('active');
+            });
+
+            key.addEventListener('mouseleave', () => {
+                key.classList.remove('active');
+            });
+
+            pianoDiv.appendChild(key);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            const keyMap = {
+                'a': 'C4', 'w': 'Db4', 's': 'D4', 'e': 'Eb4', 'd': 'E4', 'f': 'F4', 't': 'Gb4', 'g': 'G4', 'y': 'Ab4', 'h': 'A4', 'u': 'Bb4', 'j': 'B4',
+                'z': 'C3', 'x': 'D3', 'c': 'E3', 'v': 'F3','b': 'G3', 'n': 'A3', 'm': 'B3',
+                'q': 'C4', '2': 'Db4', '3': 'D4', '4': 'Eb4', '5': 'E4', 'r': 'F4', '6': 'Gb4', '7': 'G4', '8': 'Ab4', '9': 'A4', '0': 'Bb4', '-': 'B4',
+                'i': 'C5', 'o': 'D5', 'p': 'E5', '[': 'F5', ']': 'G5', '\\': 'A5',
+                'k': 'C4', 'l': 'D4', ';': 'E4', "'": 'F4',
+                ',': 'C3', '.': 'D3', '/': 'E3'
+            };
+
+            const note = keyMap[event.key];
+            if (note) {
+                playNote(note);
+                const keyElement = document.querySelector(`.key[data-note="${note}"]`);
+                if (keyElement) {
+                    keyElement.classList.add('active');
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            const keyMap = {
+                'a': 'C4', 'w': 'Db4', 's': 'D4', 'e': 'Eb4', 'd': 'E4', 'f': 'F4', 't': 'Gb4', 'g': 'G4', 'y': 'Ab4', 'h': 'A4', 'u': 'Bb4', 'j': 'B4',
+                'z': 'C3', 'x': 'D3', 'c': 'E3', 'v': 'F3', 'b': 'G3', 'n': 'A3', 'm': 'B3',
+                'q': 'C4', '2': 'Db4', '3': 'D4', '4': 'Eb4', '5': 'E4', 'r': 'F4', '6': 'Gb4', '7': 'G4', '8': 'Ab4', '9': 'A4', '0': 'Bb4', '-': 'B4',
+                'i': 'C5', 'o': 'D5', 'p': 'E5', '[': 'F5', ']': 'G5', '\\': 'A5',
+                'k': 'C4', 'l': 'D4', ';': 'E4', "'": 'F4',
+                ',': 'C3', '.': 'D3', '/': 'E3'
+            };
+
+            const note = keyMap[event.key];
+            if (note) {
+                const keyElement = document.querySelector(`.key[data-note="${note}"]`);
+                if (keyElement) {
+                    keyElement.classList.remove('active');
+                }
+            }
+        });
+
+        playRecordingButton.addEventListener('click', () => {
+            const recordedInput = recordingInput.value.trim().split('');
+            let delay = 0;
+
+            const letterToNote = {
+                'a': 'C4', 'b': 'D4', 'c': 'E4', 'd': 'F4', 'e': 'G4', 'f': 'A4', 'g': 'B4',
+                'h': 'C5', 'i': 'D5', 'j': 'E5', 'k': 'F5', 'l': 'G5',
+                'z': 'C3', 'x': 'D3', 'y': 'E3'
+            };
+
+            recordedInput.forEach(char => {
+                const trimmedChar = char.trim().toLowerCase();
+                const note = letterToNote[trimmedChar] || trimmedChar;
+
+                if (notes.hasOwnProperty(note)) {
+                    setTimeout(() => {
+                        playNote(note);
+                    }, delay);
+                    delay += 500;
+                } else {
+                    console.warn(`Character "${trimmedChar}" not found.`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
